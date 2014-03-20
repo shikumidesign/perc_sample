@@ -11,7 +11,9 @@ public:
 
 	void operator()(const cv::Mat3b& input_image, const cv::Mat1f& wave_image, cv::Mat3b& output_image);
 
-	void set_alpha(float value);
+	void set_alpha(float value) {
+		m_alpha = value;
+	}
 	float get_alpha() const {
 		return m_alpha;
 	}

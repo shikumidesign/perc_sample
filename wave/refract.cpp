@@ -17,7 +17,7 @@ void Refract::operator()(const cv::Mat3b& camera_image, const cv::Mat1f& wave_im
 	m_derivation.create(derivation_size);
 	for(int i = 0; i < derivation_size.height; ++i) {
 		cv::Vec2f* derivation = m_derivation.ptr<cv::Vec2f>(i);
-		const float* wave_row0 = wave_image.ptr<float>(i) + 1;
+		const float* wave_row0 = wave_image.ptr<float>(i) +1;
 		const float* wave_row1 = wave_image.ptr<float>(i + 1) + 1;
 		const float* wave_row2 = wave_image.ptr<float>(i + 2) + 1;
 		for(int j = 0; j < derivation_size.width; ++j) {
@@ -53,8 +53,4 @@ void Refract::operator()(const cv::Mat3b& camera_image, const cv::Mat1f& wave_im
 			output[j] = camera_image.at<cv::Vec3b>(new_y, new_x);
 		}
 	}
-}
-
-void Refract::set_alpha(float value) {
-	m_alpha = value;
 }

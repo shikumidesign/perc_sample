@@ -44,6 +44,7 @@ void OnRefractAlphaChanged(int value, void* user_data) {
 }
 
 void Binalize(const cv::Mat& depth_image, const cv::Mat& uv_map, cv::Mat1b& binary_image, short depth_threshold_mm) {
+
 	assert(depth_image.size() == uv_map.size());
 	assert(depth_image.type() == CV_16SC1);
 	assert(uv_map.type() == CV_32FC2);
@@ -73,6 +74,7 @@ void Binalize(const cv::Mat& depth_image, const cv::Mat& uv_map, cv::Mat1b& bina
 }
 
 void BlendScreen(cv::Mat3b& target_image, const cv::Mat1b& binary_image, cv::Vec3b color) {
+
 	assert(target_image.size() == binary_image.size());
 
 	cv::Size loop_size = target_image.size();
@@ -94,6 +96,7 @@ void BlendScreen(cv::Mat3b& target_image, const cv::Mat1b& binary_image, cv::Vec
 }
 
 int main() {
+
 	std::cout << "Wave Effect Sample" << std::endl;
 
 	//Initialize PerC Device

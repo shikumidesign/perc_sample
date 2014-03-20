@@ -10,6 +10,7 @@ public:
 	~Wave();
 
 	void operator()(const cv::Mat1b& binary_image, cv::Mat1f& wave_image);
+
 	void set_c(float c);
 	float get_c() const {
 		return m_c;

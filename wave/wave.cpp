@@ -1,6 +1,7 @@
 #include "wave.h"
 
 Wave::Wave(cv::Size input_size) : m_input_size(input_size), m_t1(0), m_t2(1), m_t3(2) {
+
 	m_wave_size = cv::Size(input_size.width + 2, input_size.height + 2);
 	for(int i = 0; i < 3; ++i) {
 		m_u[i].create(m_wave_size);
