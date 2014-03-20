@@ -103,7 +103,7 @@ int main() {
 	PXCSmartPtr<PXCSession> session;
 	pxcStatus sts = PXCSession_Create(&session);
 	if(sts < PXC_STATUS_NO_ERROR) {
-		std::cout << "PXCSession_Create error: " << sts << std::endl;
+		std::cout << "Failed to PXCSession_Create: " << sts << std::endl;
 		system("pause");
 		return 1;
 	}
@@ -116,7 +116,7 @@ int main() {
 
 	sts = capture.LocateStreams(&req);
 	if(sts < PXC_STATUS_NO_ERROR) {
-		std::cout << "LocateStreams error: " << sts << std::endl;
+		std::cout << "Failed to LocateStreams: " << sts << std::endl;
 		std::cout << "Make sure the device is connected." << std::endl;
 		system("pause");
 		return 2;
@@ -134,7 +134,7 @@ int main() {
 		<< " (" << depth_info.frameRateMin.numerator / depth_info.frameRateMin.denominator << ")" << std::endl;
 
 	cv::Mat3b camera_image(camera_size);
-	cv::Mat1b binary_image;
+	cv::Mat1b binary_image(depth_size);
 	cv::Mat1b binary_show_image;
 	cv::Mat1b resized_binary_image;
 	cv::Mat1b dilated_binary_image;
@@ -174,31 +174,42 @@ int main() {
 		PXCSmartSP sp;
 		sts = capture.ReadStreamAsync(images, &sp);
 		if(sts < PXC_STATUS_NO_ERROR) {
+			std::cout << "Failed to ReadStreamAsync: " << sts << std::endl;
+			system("pause");
 			break;
 		}
 		sts = sp->Synchronize();
 		if(sts < PXC_STATUS_NO_ERROR) {
+			std::cout << "Failed to Synchronize: " << sts << std::endl;
+			system("pause");
 			break;
 		}
 
 		//Get camera image
 		PXCImage::ImageData camera_data;
-		images[0]->AcquireAccess(PXCImage::ACCESS_READ, PXCImage::COLOR_FORMAT_RGB24, &camera_data);
-		const cv::Mat wrap_camera(camera_size, CV_8UC3, camera_data.planes[0], camera_data.pitches[0]);
-		cv::flip(wrap_camera, camera_image, 1);//Flip around y-axis
-		images[0]->ReleaseAccess(&camera_data);
+		sts = images[0]->AcquireAccess(PXCImage::ACCESS_READ, PXCImage::COLOR_FORMAT_RGB24, &camera_data);
+		if(sts == PXC_STATUS_NO_ERROR) {
+			const cv::Mat wrap_camera(camera_size, CV_8UC3, camera_data.planes[0], camera_data.pitches[0]);
+			cv::flip(wrap_camera, camera_image, 1);//Flip around y-axis
+			images[0]->ReleaseAccess(&camera_data);
+		} else {
+			std::cout << "Failed to AcquireAccess to camera: " << sts << std::endl;
+		}
 
 		//Get depth image
 		PXCImage::ImageData depth_data;
-		images[1]->AcquireAccess(PXCImage::ACCESS_READ, PXCImage::COLOR_FORMAT_DEPTH, &depth_data);
-		const cv::Mat wrap_depth(depth_size, CV_16SC1, depth_data.planes[0], depth_data.pitches[0]);
-		const cv::Mat wrap_uv(depth_size, CV_32FC2, depth_data.planes[2], depth_data.pitches[2]);
+		sts = images[1]->AcquireAccess(PXCImage::ACCESS_READ, PXCImage::COLOR_FORMAT_DEPTH, &depth_data);
+		if(sts == PXC_STATUS_NO_ERROR) {
+			const cv::Mat wrap_depth(depth_size, CV_16SC1, depth_data.planes[0], depth_data.pitches[0]);
+			const cv::Mat wrap_uv(depth_size, CV_32FC2, depth_data.planes[2], depth_data.pitches[2]);
 
-		binary_image.create(depth_size);
-		Binalize(wrap_depth, wrap_uv, binary_image, distance_threshold_10cm * 100);
-		cv::flip(binary_image, binary_image, 1);//Flip around y-axis
+			Binalize(wrap_depth, wrap_uv, binary_image, distance_threshold_10cm * 100);
+			cv::flip(binary_image, binary_image, 1);//Flip around y-axis
 
-		images[0]->ReleaseAccess(&depth_data);
+			images[1]->ReleaseAccess(&depth_data);
+		} else {
+			std::cout << "Failed to AcquireAccess to depth: " << sts << std::endl;
+		}
 
 		//Dilate
 		cv::dilate(binary_image, dilated_binary_image, cv::Mat(), cv::Point(-1, -1), dilate_interation, cv::BORDER_REPLICATE);
