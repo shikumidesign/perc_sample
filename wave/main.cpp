@@ -103,7 +103,8 @@ int main() {
 	PXCSmartPtr<PXCSession> session;
 	pxcStatus sts = PXCSession_Create(&session);
 	if(sts < PXC_STATUS_NO_ERROR) {
-		std::cout << "PXCSession_Create error " << sts << std::endl;
+		std::cout << "PXCSession_Create error: " << sts << std::endl;
+		system("pause");
 		return 1;
 	}
 	UtilCapture capture(session);
@@ -115,6 +116,9 @@ int main() {
 
 	sts = capture.LocateStreams(&req);
 	if(sts < PXC_STATUS_NO_ERROR) {
+		std::cout << "LocateStreams error: " << sts << std::endl;
+		std::cout << "Make sure the device is connected." << std::endl;
+		system("pause");
 		return 2;
 	}
 
@@ -123,6 +127,11 @@ int main() {
 	const cv::Size camera_size(camera_info.imageInfo.width, camera_info.imageInfo.height);
 	capture.QueryVideoStream(1)->QueryProfile(&depth_info);
 	const cv::Size depth_size(depth_info.imageInfo.width, depth_info.imageInfo.height);
+
+	std::cout << "Camera info: " << camera_info.imageInfo.width << "x" << camera_info.imageInfo.height
+		<< " (" << camera_info.frameRateMin.numerator / camera_info.frameRateMin.denominator << ")" << std::endl;
+	std::cout << "Depth info: " << depth_info.imageInfo.width << "x" << depth_info.imageInfo.height
+		<< " (" << depth_info.frameRateMin.numerator / depth_info.frameRateMin.denominator << ")" << std::endl;
 
 	cv::Mat3b camera_image(camera_size);
 	cv::Mat1b binary_image;
@@ -156,6 +165,8 @@ int main() {
 	cv::setTrackbarPos("fixed", "wave", wave_object.get_fixed_boundary());
 	cv::createTrackbar("alpha", "refract", NULL, 100, OnRefractAlphaChanged, &refract_object);
 	cv::setTrackbarPos("alpha", "refract", (int)refract_object.get_alpha());
+
+	std::cout << "Press ESC key to exit." << std::endl;
 
 	while(true) {
 
